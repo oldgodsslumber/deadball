@@ -69,12 +69,15 @@ DB.GameUI = {
     });
 
     DB.App.currentGame = DB.GameUI.gameState;
-    DB.GameUI.updateDisplay();
     DB.Screens.show('game');
+    DB.GameUI.updateDisplay();
 
     // Add initial log entry
     DB.GameUI.addLog('=== ' + awayTeam.name + ' at ' + homeTeam.name + ' ===', 'inning-break');
     DB.GameUI.addLog('=== Top of inning 1 ===', 'inning-break');
+
+    // Kick off AI or sim if needed
+    DB.GameUI.checkAutoPlay();
   },
 
   // Main swing action
@@ -104,26 +107,11 @@ DB.GameUI = {
       // Check game over
       if (gs.isComplete) {
         DB.GameUI.showGameOver();
+        return;
       }
 
-      // If sim mode, auto-continue
-      if (gs.mode === 'sim' && !gs.isComplete) {
-        setTimeout(function() { DB.GameUI.doSwing(); }, 100);
-      }
-
-      // If solo mode and AI is batting, auto-swing
-      if (gs.mode === 'solo' && DB.AIManager.isAIBatting(gs) && !gs.isComplete) {
-        var decision = DB.AIManager.decide(gs);
-        setTimeout(function() {
-          if (decision.action === 'steal') DB.GameUI.doSteal();
-          else if (decision.action === 'bunt') DB.GameUI.doBunt();
-          else if (decision.action === 'hitandrun') DB.GameUI.doHitAndRun();
-          else DB.GameUI.doSwing();
-        }, 300);
-      }
-
-      // AI fielding decisions
-      if (gs.mode === 'solo' && DB.AIManager.isAIFielding(gs) && !gs.isComplete) {
+      // AI fielding decisions (pitching changes between at-bats)
+      if (gs.mode === 'solo' && DB.AIManager.isAIFielding(gs)) {
         var fieldDecision = DB.AIManager.decideFielding(gs);
         if (fieldDecision.action === 'pitching_change' && fieldDecision.pitcher) {
           var side = gs.aiSide;
@@ -132,7 +120,34 @@ DB.GameUI = {
           DB.GameUI.updateDisplay();
         }
       }
+
+      // Auto-play next at-bat if AI is batting or sim mode
+      DB.GameUI.checkAutoPlay();
     });
+  },
+
+  // Check if AI or sim should auto-play the next at-bat
+  checkAutoPlay() {
+    var gs = DB.GameUI.gameState;
+    if (!gs || gs.isComplete) return;
+
+    // Sim mode: auto-continue all at-bats
+    if (gs.mode === 'sim') {
+      setTimeout(function() { DB.GameUI.doSwing(); }, 100);
+      return;
+    }
+
+    // Solo mode: auto-play when AI is batting
+    if (gs.mode === 'solo' && DB.AIManager.isAIBatting(gs)) {
+      var decision = DB.AIManager.decide(gs);
+      setTimeout(function() {
+        if (decision.action === 'steal') DB.GameUI.doSteal();
+        else if (decision.action === 'bunt') DB.GameUI.doBunt();
+        else if (decision.action === 'hitandrun') DB.GameUI.doHitAndRun();
+        else DB.GameUI.doSwing();
+      }, 300);
+      return;
+    }
   },
 
   // Steal action
@@ -411,7 +426,13 @@ DB.GameUI = {
     var isHumanBatting = gs.mode !== 'sim' &&
       (gs.mode !== 'solo' || !DB.AIManager.isAIBatting(gs));
     var actionBar = document.getElementById('action-bar');
-    if (actionBar) actionBar.style.display = isHumanBatting && !gs.isComplete ? 'flex' : 'none';
+    if (actionBar) {
+      if (isHumanBatting && !gs.isComplete) {
+        actionBar.classList.remove('hidden');
+      } else {
+        actionBar.classList.add('hidden');
+      }
+    }
   },
 
   updateLineScore(gs) {
