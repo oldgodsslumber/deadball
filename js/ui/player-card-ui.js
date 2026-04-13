@@ -4,6 +4,7 @@ var DB = DB || {};
 DB.PlayerCardUI = {
   _lastPlayer: null,
   _buildState: null, // working state for the in-depth builder
+  _overrideSave: null, // callback when editing a player from a team roster
 
   // ===== QUICK RANDOM GENERATE (from the old creator) =====
   generateRandom() {
@@ -485,6 +486,15 @@ DB.PlayerCardUI = {
     });
 
     DB.PlayerCardUI._lastPlayer = player;
+
+    // If called from roster edit, put player back into the team
+    if (DB.PlayerCardUI._overrideSave) {
+      DB.PlayerCardUI._overrideSave(player);
+      DB.PlayerCardUI._overrideSave = null;
+      DB.Screens.back();
+      return;
+    }
+
     DB.App.playerPool.push(player);
     alert(player.name + ' saved to player pool!');
     DB.Screens.back();

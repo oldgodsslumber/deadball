@@ -13,7 +13,8 @@ DB.ImportUI = {
     var container = document.getElementById('mlb-import-content');
     container.innerHTML = '<p>Loading MLB teams...</p>';
 
-    fetch(DB.ImportUI.MLB_API + '/api/v1/teams?sportId=1&season=2025')
+    var seasonYear = new Date().getFullYear();
+    fetch(DB.ImportUI.MLB_API + '/api/v1/teams?sportId=1&season=' + seasonYear)
       .then(function(r) { return r.json(); })
       .then(function(data) {
         var teams = data.teams || [];
@@ -26,7 +27,14 @@ DB.ImportUI = {
           html += '<option value="' + t.id + '">' + t.name + '</option>';
         });
         html += '</select></div>';
-        html += '<div class="form-group"><label>Era</label>';
+        html += '<div class="form-group"><label>Season</label>';
+        html += '<select id="mlb-import-season">';
+        var curYear = new Date().getFullYear();
+        for (var y = curYear; y >= curYear - 5; y--) {
+          html += '<option value="' + y + '">' + y + ' Season</option>';
+        }
+        html += '</select></div>';
+        html += '<div class="form-group"><label>Era Rules</label>';
         html += '<select id="mlb-import-era"><option value="modern">Modern</option><option value="juiced">Juiced Ball</option></select></div>';
         html += '<div id="mlb-roster-preview"></div>';
         container.innerHTML = html;
@@ -42,7 +50,9 @@ DB.ImportUI = {
     var preview = document.getElementById('mlb-roster-preview');
     preview.innerHTML = '<p>Loading roster...</p>';
 
-    fetch(DB.ImportUI.MLB_API + '/api/v1/teams/' + teamId + '/roster?rosterType=active&season=2025')
+    var season = document.getElementById('mlb-import-season');
+    var seasonVal = season ? season.value : new Date().getFullYear();
+    fetch(DB.ImportUI.MLB_API + '/api/v1/teams/' + teamId + '/roster?rosterType=active&season=' + seasonVal)
       .then(function(r) { return r.json(); })
       .then(function(data) {
         var roster = data.roster || [];
@@ -50,7 +60,7 @@ DB.ImportUI = {
 
         // Fetch stats for all players
         var promises = playerIds.map(function(pid) {
-          return fetch(DB.ImportUI.MLB_API + '/api/v1/people/' + pid + '?hydrate=stats(group=[hitting,pitching],type=season,season=2025)')
+          return fetch(DB.ImportUI.MLB_API + '/api/v1/people/' + pid + '?hydrate=stats(group=[hitting,pitching],type=season,season=' + seasonVal + ')')
             .then(function(r) { return r.json(); })
             .then(function(d) { return d.people ? d.people[0] : null; })
             .catch(function() { return null; });
@@ -204,7 +214,9 @@ DB.ImportUI = {
     DB.Team.calculateTeamScore(team);
     DB.App.teams.push(team);
 
-    alert(team.name + ' imported! Team Score: ' + team.teamScore);
+    var impSeason = document.getElementById('mlb-import-season');
+    var impYear = impSeason ? impSeason.value : new Date().getFullYear();
+    alert(team.name + ' (' + impYear + ' season) imported! Team Score: ' + team.teamScore);
     DB.Screens.show('team-setup');
     DB.TeamBuilderUI.refreshTeamSetup();
   }

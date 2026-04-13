@@ -48,41 +48,32 @@ DB.DiamondView = {
     el.classList.add('show');
   },
 
-  // Animate ball to a field position
-  animateBall(targetPos) {
+  // Move ball smoothly to a position
+  moveBall(cx, cy) {
     var ball = document.getElementById('ball');
     if (!ball) return;
-
-    var positions = {
-      'P':  { cx: 200, cy: 165 },
-      'C':  { cx: 200, cy: 240 },
-      '1B': { cx: 300, cy: 175 },
-      '2B': { cx: 260, cy: 140 },
-      '3B': { cx: 100, cy: 175 },
-      'SS': { cx: 140, cy: 140 },
-      'LF': { cx: 80,  cy: 80 },
-      'CF': { cx: 200, cy: 50 },
-      'RF': { cx: 320, cy: 80 },
-      'home': { cx: 200, cy: 270 }
-    };
-
-    var target = positions[targetPos] || positions['CF'];
-
-    // Start at pitcher
-    ball.setAttribute('cx', 200);
-    ball.setAttribute('cy', 165);
+    ball.setAttribute('cx', cx);
+    ball.setAttribute('cy', cy);
     ball.classList.add('active');
+  },
 
-    // Animate to target
-    setTimeout(function() {
-      ball.setAttribute('cx', target.cx);
-      ball.setAttribute('cy', target.cy);
-    }, 50);
+  hideBall() {
+    var ball = document.getElementById('ball');
+    if (ball) ball.classList.remove('active');
+  },
 
-    // Hide after animation
-    setTimeout(function() {
-      ball.classList.remove('active');
-    }, 800);
+  // Field positions for ball targets
+  fieldPos: {
+    'P':    { cx: 200, cy: 165 },
+    'C':    { cx: 200, cy: 240 },
+    '1B':   { cx: 300, cy: 175 },
+    '2B':   { cx: 260, cy: 140 },
+    '3B':   { cx: 100, cy: 175 },
+    'SS':   { cx: 140, cy: 140 },
+    'LF':   { cx: 80,  cy: 80 },
+    'CF':   { cx: 200, cy: 50 },
+    'RF':   { cx: 320, cy: 80 },
+    'home': { cx: 200, cy: 270 }
   },
 
   // Animate a runner scoring
@@ -97,33 +88,71 @@ DB.DiamondView = {
     }
   },
 
-  // Full play animation sequence
+  // ===== FULL PLAY ANIMATION SEQUENCE =====
+  // Phase 1: Pitch (ball from mound to plate)
+  // Phase 2: Hit result (ball travels to field) or miss (strikeout/walk)
+  // Phase 3: Flash label
+  // Phase 4: Runner movement
+  // Phase 5: Update bases, callback
   animatePlay(event, callback) {
     var delay = 0;
-    var animSpeed = DB.DiamondView.animSpeed || 600;
+    var speed = DB.DiamondView.animSpeed || 600;
+    var halfSpeed = Math.round(speed * 0.5);
 
-    // Show ball trajectory based on result
+    // === PHASE 1: PITCH — ball from mound toward home plate ===
+    DB.DiamondView.moveBall(200, 165); // start at pitcher
+    setTimeout(function() {
+      DB.DiamondView.moveBall(200, 250); // arrive at plate
+    }, 50);
+    delay += halfSpeed;
+
+    // === PHASE 2: CONTACT / RESULT ===
     if (event.result === 'hit') {
-      var hitPositions = {
-        'single': event.hitType === 'single' ? 'SS' : 'CF',
-        'double': 'LF',
-        'triple': 'RF',
-        'homerun': 'CF'
-      };
-      // If there's a DEF fielder, animate to them
-      if (event.defResult && event.defResult.fielder) {
-        DB.DiamondView.animateBall(event.defResult.fielder.position || 'CF');
-      } else {
-        DB.DiamondView.animateBall(hitPositions[event.hitType] || 'CF');
-      }
-      delay += animSpeed;
+      // Ball launches into the field
+      var target = DB.DiamondView.getHitTarget(event);
+      setTimeout(function() {
+        DB.DiamondView.moveBall(target.cx, target.cy);
+      }, delay);
+      delay += speed;
+
     } else if (event.result === 'out' && event.outType) {
-      DB.DiamondView.animateBall(event.outType.fielder || 'P');
-      delay += animSpeed;
+      if (event.outType.type === 'strikeout') {
+        // Ball stays at catcher (caught pitch)
+        setTimeout(function() {
+          DB.DiamondView.moveBall(200, 245);
+        }, delay);
+        delay += halfSpeed;
+      } else {
+        // Ball hit into field toward fielder
+        var outTarget = DB.DiamondView.fieldPos[event.outType.fielder] || DB.DiamondView.fieldPos['SS'];
+        setTimeout(function() {
+          DB.DiamondView.moveBall(outTarget.cx, outTarget.cy);
+        }, delay);
+        delay += speed;
+      }
+
+    } else if (event.result === 'walk' || event.result === 'hbp') {
+      // Ball stays near plate area
+      setTimeout(function() {
+        DB.DiamondView.moveBall(200, 255);
+      }, delay);
+      delay += halfSpeed;
+
+    } else if (event.result === 'error') {
+      // Ball goes to fielder then bobbles
+      var errTarget = DB.DiamondView.fieldPos['SS'];
+      setTimeout(function() {
+        DB.DiamondView.moveBall(errTarget.cx, errTarget.cy);
+      }, delay);
+      delay += speed;
+
+    } else if (event.result === 'oddity') {
+      delay += halfSpeed;
     }
 
-    // Show flash
+    // === PHASE 3: FLASH LABEL ===
     setTimeout(function() {
+      DB.DiamondView.hideBall();
       if (event.result === 'hit') {
         DB.DiamondView.showHitFlash(event.hitType);
       } else if (event.result === 'walk') {
@@ -141,28 +170,49 @@ DB.DiamondView = {
         else DB.DiamondView.showHitFlash('out');
       }
     }, delay);
-    delay += animSpeed;
+    delay += speed;
 
-    // Animate scoring runners
+    // === PHASE 4: RUNNER SCORING ===
     if (event.scored && event.scored.length > 0) {
       setTimeout(function() {
-        // Figure out which bases had runners that scored
         ['third', 'second', 'first'].forEach(function(base) {
-          event.scored.forEach(function(p) {
-            DB.DiamondView.animateScore(base);
-          });
+          DB.DiamondView.animateScore(base);
         });
       }, delay);
-      delay += animSpeed;
+      delay += speed;
     }
 
-    // Update bases after all animations
+    // === PHASE 5: UPDATE BASES + CALLBACK ===
     setTimeout(function() {
       if (event.newBases) {
         DB.DiamondView.updateBases(event.newBases);
       }
       if (callback) callback();
     }, delay);
+  },
+
+  // Determine where a hit ball should go
+  getHitTarget(event) {
+    // If DEF fielder, aim at them
+    if (event.defResult && event.defResult.fielder) {
+      var pos = typeof event.defResult.fielder === 'string'
+        ? event.defResult.fielder
+        : event.defResult.fielder.position;
+      if (DB.DiamondView.fieldPos[pos]) return DB.DiamondView.fieldPos[pos];
+    }
+
+    // By hit type
+    switch (event.hitType) {
+      case 'homerun': return { cx: 200, cy: 20 };  // over the fence
+      case 'triple':  return DB.DiamondView.fieldPos['RF'];
+      case 'double':  return DB.DiamondView.fieldPos[Math.random() < 0.5 ? 'LF' : 'RF'];
+      case 'single':
+      default:
+        // Randomly pick a gap
+        var singles = ['SS', '2B', 'LF', 'CF', 'RF'];
+        var pick = singles[Math.floor(Math.random() * singles.length)];
+        return DB.DiamondView.fieldPos[pick];
+    }
   },
 
   animSpeed: 600,

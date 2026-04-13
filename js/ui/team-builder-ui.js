@@ -21,18 +21,22 @@ DB.TeamBuilderUI = {
 
     var team = DB.Team.generateRapid(name || null, era, teamGender);
     DB.App.teams.push(team);
+    var teamIdx = DB.App.teams.length - 1;
 
     // Show result
     var container = document.getElementById('rapid-result');
     if (container) {
-      var html = '<div class="card fade-in">';
+      var html = '<div class="card fade-in" id="rapid-team-card-' + teamIdx + '">';
       html += '<div class="card-header"><h3>' + team.name + '</h3>';
       html += '<span class="era-badge">' + DB.Eras[era].name + '</span></div>';
       html += '<p>Team Score: <strong>' + team.teamScore + '</strong> | Manager: ' + team.manager.name + ' (Daring: ' + team.manager.daring + ')</p>';
+      html += '<div id="rapid-roster-' + teamIdx + '">';
       html += DB.RosterUI.renderRoster(team);
-      html += '<div class="btn-group" style="margin-top:12px;">';
+      html += '</div>';
+      html += '<div class="btn-group" style="margin-top:12px;flex-wrap:wrap;">';
       html += '<button class="btn btn-success btn-small" onclick="DB.Screens.show(\'team-setup\'); DB.TeamBuilderUI.refreshTeamSetup();">Use This Team</button>';
-      html += '<button class="btn btn-secondary btn-small" onclick="DB.App.teams.pop(); document.getElementById(\'rapid-result\').innerHTML=\'\';">Discard</button>';
+      html += '<button class="btn btn-warning btn-small" onclick="DB.TeamBuilderUI.editRapidTeam(' + teamIdx + ')">Edit Players</button>';
+      html += '<button class="btn btn-secondary btn-small" onclick="DB.App.teams.splice(' + teamIdx + ',1); document.getElementById(\'rapid-team-card-' + teamIdx + '\').remove();">Discard</button>';
       html += '</div></div>';
       container.innerHTML += html;
     }
@@ -222,6 +226,24 @@ DB.TeamBuilderUI = {
       handedness: DB.Tables.handednessTable.batter[DB.Dice.d10()],
       age: DB.Dice.d6() + 22
     });
+  },
+
+  editRapidTeam(teamIdx) {
+    var team = DB.App.teams[teamIdx];
+    if (!team) return;
+    DB.RosterUI.startEditSession(team, function() {
+      // Re-render this team's roster after an edit
+      var rosterArea = document.getElementById('rapid-roster-' + teamIdx);
+      if (rosterArea) {
+        rosterArea.innerHTML = '<h4>Team Score: ' + team.teamScore + '</h4>' +
+          DB.RosterUI.renderEditableRoster(team);
+      }
+    });
+    var rosterArea = document.getElementById('rapid-roster-' + teamIdx);
+    if (rosterArea) {
+      rosterArea.innerHTML = '<h4>Team Score: ' + team.teamScore + '</h4>' +
+        DB.RosterUI.renderEditableRoster(team);
+    }
   },
 
   refreshTeamSetup() {

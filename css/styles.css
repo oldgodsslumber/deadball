@@ -228,6 +228,26 @@ select option { background: var(--bg-input); }
   font-family: 'Courier New', monospace;
 }
 .scoreboard .inning-info { color: var(--text-dim); font-size: 0.9rem; }
+.team-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 2px;
+  min-height: 1em;
+}
+.team-label.you { color: var(--green); }
+.team-label.cpu { color: var(--text-muted); }
+.your-team-banner {
+  background: var(--green);
+  color: #111;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
 
 .line-score {
   overflow-x: auto;

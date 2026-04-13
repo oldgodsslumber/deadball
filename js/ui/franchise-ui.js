@@ -161,10 +161,13 @@ DB.FranchiseUI = {
     html += '</table>';
 
     html += '<h3>Roster (Team Score: ' + team.teamScore + ')</h3>';
+    html += '<div id="franchise-roster-area">';
     html += DB.RosterUI.renderRoster(team);
+    html += '</div>';
 
-    html += '<div class="btn-group" style="margin-top:16px;">';
+    html += '<div class="btn-group" style="margin-top:16px;flex-wrap:wrap;">';
     html += '<button class="btn btn-success" onclick="DB.FranchiseUI.saveFranchise()">Save Franchise</button>';
+    html += '<button class="btn btn-warning" onclick="DB.FranchiseUI.editRoster()">Edit Roster</button>';
     html += '<button class="btn btn-secondary" onclick="DB.FranchiseUI.generate()">Reroll</button>';
     html += '</div></div>';
 
@@ -178,6 +181,24 @@ DB.FranchiseUI = {
     if (DB.FranchiseUI._lastTeam) {
       DB.App.teams.push(DB.FranchiseUI._lastTeam);
       alert(DB.FranchiseUI._lastTeam.name + ' added to your teams!');
+    }
+  },
+
+  editRoster() {
+    var team = DB.FranchiseUI._lastTeam;
+    if (!team) return;
+    DB.RosterUI.startEditSession(team, function() {
+      // Re-render roster area after edit
+      var area = document.getElementById('franchise-roster-area');
+      if (area) {
+        area.innerHTML = '<h4>Team Score: ' + team.teamScore + '</h4>' +
+          DB.RosterUI.renderEditableRoster(team);
+      }
+    });
+    var area = document.getElementById('franchise-roster-area');
+    if (area) {
+      area.innerHTML = '<h4>Team Score: ' + team.teamScore + '</h4>' +
+        DB.RosterUI.renderEditableRoster(team);
     }
   }
 };

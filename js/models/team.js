@@ -74,7 +74,10 @@ DB.Team = {
     options = options || {};
     const era = options.era || 'modern';
     const eraConfig = DB.Eras[era];
-    const teamName = options.name || DB.Team.generateTeamName();
+    var rawName = options.name;
+    const teamName = typeof rawName === 'string'
+      ? { name: rawName, location: rawName.split(' ').slice(0, -1).join(' ') || rawName, mascot: rawName.split(' ').pop() }
+      : (rawName || DB.Team.generateTeamName());
     const teamGender = options.teamGender || 'mixed';
 
     // Helper: pick gender for a player based on team composition

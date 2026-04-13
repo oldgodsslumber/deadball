@@ -392,11 +392,26 @@ DB.GameUI = {
     var gs = DB.GameUI.gameState;
     if (!gs) return;
 
-    // Team names
+    // Team names + ownership labels
     var awayName = document.getElementById('away-team-name');
     var homeName = document.getElementById('home-team-name');
     if (awayName) awayName.textContent = gs.awayTeam.name;
     if (homeName) homeName.textContent = gs.homeTeam.name;
+
+    var awayLabel = document.getElementById('away-label');
+    var homeLabel = document.getElementById('home-label');
+    var banner = document.getElementById('your-team-banner');
+    if (gs.mode === 'solo' && gs.aiSide) {
+      var yourSide = gs.aiSide === 'away' ? 'home' : 'away';
+      var yourTeam = yourSide === 'home' ? gs.homeTeam : gs.awayTeam;
+      if (awayLabel) { awayLabel.textContent = gs.aiSide === 'away' ? 'CPU' : 'YOU'; awayLabel.className = 'team-label ' + (gs.aiSide === 'away' ? 'cpu' : 'you'); }
+      if (homeLabel) { homeLabel.textContent = gs.aiSide === 'home' ? 'CPU' : 'YOU'; homeLabel.className = 'team-label ' + (gs.aiSide === 'home' ? 'cpu' : 'you'); }
+      if (banner) { banner.textContent = 'You are the ' + yourTeam.name; banner.classList.remove('hidden'); }
+    } else {
+      if (awayLabel) { awayLabel.textContent = ''; awayLabel.className = 'team-label'; }
+      if (homeLabel) { homeLabel.textContent = ''; homeLabel.className = 'team-label'; }
+      if (banner) banner.classList.add('hidden');
+    }
 
     // Scores
     var awayScore = document.getElementById('away-score');

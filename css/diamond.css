@@ -105,9 +105,10 @@
 
 .ball {
   fill: #fff;
-  r: 4;
+  r: 5;
   opacity: 0;
-  transition: all 0.4s ease;
+  transition: cx 0.35s ease-out, cy 0.35s ease-out, opacity 0.15s;
+  filter: drop-shadow(0 0 4px rgba(255,255,255,0.8));
 }
 .ball.active {
   opacity: 1;
