@@ -243,7 +243,7 @@ DB.Player = {
       // Fallback if names.js hasn't loaded
       return 'Player ' + Math.floor(Math.random() * 9999);
     }
-    var c = country || DB.Names.countries[Math.floor(Math.random() * DB.Names.countries.length)];
+    var c = country || DB.Player.pickWeightedCountry();
     var firstList = gender === 'F' ? DB.Names.female[c] : DB.Names.male[c];
     var lastList = DB.Names.last[c];
     if (!firstList || !lastList) {
@@ -254,6 +254,45 @@ DB.Player = {
     var first = firstList[Math.floor(Math.random() * firstList.length)];
     var last = lastList[Math.floor(Math.random() * lastList.length)];
     return first + ' ' + last;
+  },
+
+  // Weighted country selection - favors countries well-represented in baseball
+  // Weights roughly reflect MLB player demographics
+  _countryWeights: [
+    { country: 'United States', weight: 30 },
+    { country: 'Mexico', weight: 8 },
+    { country: 'Japan', weight: 8 },
+    { country: 'South Korea', weight: 7 },
+    { country: 'United Kingdom', weight: 6 },
+    { country: 'Germany', weight: 6 },
+    { country: 'Brazil', weight: 6 },
+    { country: 'Colombia', weight: 4 },
+    { country: 'Australia', weight: 3 },
+    { country: 'Philippines', weight: 3 },
+    { country: 'India', weight: 2 },
+    { country: 'Nigeria', weight: 2 },
+    { country: 'France', weight: 2 },
+    { country: 'China', weight: 2 },
+    { country: 'Russia', weight: 2 },
+    { country: 'Italy', weight: 2 },
+    { country: 'Argentina', weight: 2 },
+    { country: 'Egypt', weight: 1 },
+    { country: 'Pakistan', weight: 1 },
+    { country: 'Poland', weight: 1 }
+  ],
+  _countryWeightTotal: 0,
+
+  pickWeightedCountry() {
+    if (!DB.Player._countryWeightTotal) {
+      DB.Player._countryWeightTotal = DB.Player._countryWeights.reduce(function(s, e) { return s + e.weight; }, 0);
+    }
+    var roll = Math.random() * DB.Player._countryWeightTotal;
+    var sum = 0;
+    for (var i = 0; i < DB.Player._countryWeights.length; i++) {
+      sum += DB.Player._countryWeights[i].weight;
+      if (roll < sum) return DB.Player._countryWeights[i].country;
+    }
+    return 'United States';
   },
 
   // Serialize for save
