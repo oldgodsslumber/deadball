@@ -56,12 +56,18 @@ DB.MainMenuUI = {
     var container = document.getElementById('team-manager-content');
     if (!container) return;
 
+    var html = '<div class="menu-grid" style="margin-bottom:20px;">';
+    html += '<div class="menu-item" onclick="DB.TeamBuilderUI.startRapid()"><div class="icon">&#9889;</div><h3>Rapid Create</h3><p>Auto-generate from a name</p></div>';
+    html += '<div class="menu-item" onclick="DB.TeamBuilderUI.startDetailed()"><div class="icon">&#128295;</div><h3>Detailed Builder</h3><p>Craft each player</p></div>';
+    html += '<div class="menu-item" onclick="DB.FranchiseUI.start()"><div class="icon">&#127967;</div><h3>Franchise Builder</h3><p>Random franchise from tables</p></div>';
+    html += '<div class="menu-item" onclick="DB.ImportUI.start()"><div class="icon">&#127758;</div><h3>Import MLB Team</h3><p>Pull real player stats</p></div>';
+    html += '</div>';
+
     if (DB.App.teams.length === 0) {
-      container.innerHTML = '<p class="subtitle">No teams loaded. Create or load teams first.</p>';
+      container.innerHTML = html + '<p class="subtitle">No teams yet. Use the options above to create one.</p>';
       return;
     }
 
-    var html = '';
     DB.App.teams.forEach(function(team, idx) {
       html += '<div class="card">';
       html += '<div class="card-header"><h3>' + team.name + '</h3>';
