@@ -17,6 +17,7 @@ DB.Player = {
       age: data.age || 25,
       isPitcher: data.isPitcher || false,
       isStarter: data.isStarter != null ? data.isStarter : true,
+      gender: data.gender || 'M', // 'M' or 'F'
 
       // Runtime game state (reset each game)
       currentPitchDie: data.pitchDie || null,
@@ -158,12 +159,13 @@ DB.Player = {
       }
     }
 
-    // Name
-    const name = options.name || DB.Player.generateName();
+    // Gender and Name
+    const gender = options.gender || (Math.random() < 0.5 ? 'M' : 'F');
+    const name = options.name || DB.Player.generateName(gender);
 
     return DB.Player.create({
       name, position, handedness, bt, obt, pitchDie, traits, age,
-      isPitcher,
+      isPitcher, gender,
       isStarter: position === 'SP'
     });
   },
@@ -230,29 +232,27 @@ DB.Player = {
     return traits;
   },
 
-  // ===== NAME GENERATION =====
-  _firstNames: [
-    'James','John','Robert','Michael','William','David','Richard','Joseph','Thomas','Charles',
-    'Chris','Daniel','Matthew','Anthony','Mark','Steven','Paul','Andrew','Joshua','Kenneth',
-    'Kevin','Brian','George','Timothy','Ronald','Edward','Jason','Jeff','Ryan','Jacob',
-    'Gary','Nick','Eric','Frank','Juan','Carlos','Jose','Miguel','Pedro','Rafael',
-    'Alex','Sam','Ben','Zach','Tyler','Luke','Nolan','Aaron','Derek','Cal',
-    'Buck','Dizzy','Satchel','Lefty','Smoky','Rube','Cy','Honus','Ty','Babe',
-    'Lou','Joe','Ted','Jackie','Mickey','Willie','Hank','Roberto','Sandy','Nolan'
-  ],
-  _lastNames: [
-    'Smith','Johnson','Williams','Brown','Jones','Garcia','Miller','Davis','Rodriguez','Martinez',
-    'Anderson','Taylor','Thomas','Jackson','White','Harris','Martin','Thompson','Robinson','Clark',
-    'Lewis','Walker','Hall','Allen','Young','King','Wright','Lopez','Hill','Scott',
-    'Green','Adams','Baker','Cruz','Rivera','Reyes','Torres','Ramirez','Diaz','Morales',
-    'Sullivan','Murphy','O\'Brien','Kelly','Kennedy','O\'Neill','Quinn','Walsh','Flynn','Doyle',
-    'Wagner','Mueller','Schmidt','Schneider','Weber','Fischer','Hoffmann','Schultz','Koch','Bauer',
-    'Harper','Trout','Judge','Ohtani','Acuna','Soto','Freeman','Alvarez','Betts','Guerrero'
-  ],
+  // ===== NAME GENERATION (from Modern Roll Tables) =====
 
-  generateName() {
-    const first = DB.Player._firstNames[Math.floor(Math.random() * DB.Player._firstNames.length)];
-    const last = DB.Player._lastNames[Math.floor(Math.random() * DB.Player._lastNames.length)];
+  // Generate a name using the country-based tables from the docx
+  // gender: 'M' or 'F'
+  // country: specific country string, or null for random
+  generateName(gender, country) {
+    gender = gender || (Math.random() < 0.5 ? 'M' : 'F');
+    if (!DB.Names) {
+      // Fallback if names.js hasn't loaded
+      return 'Player ' + Math.floor(Math.random() * 9999);
+    }
+    var c = country || DB.Names.countries[Math.floor(Math.random() * DB.Names.countries.length)];
+    var firstList = gender === 'F' ? DB.Names.female[c] : DB.Names.male[c];
+    var lastList = DB.Names.last[c];
+    if (!firstList || !lastList) {
+      c = 'United States';
+      firstList = gender === 'F' ? DB.Names.female[c] : DB.Names.male[c];
+      lastList = DB.Names.last[c];
+    }
+    var first = firstList[Math.floor(Math.random() * firstList.length)];
+    var last = lastList[Math.floor(Math.random() * lastList.length)];
     return first + ' ' + last;
   },
 
@@ -262,7 +262,7 @@ DB.Player = {
       id: player.id, name: player.name, position: player.position,
       handedness: player.handedness, bt: player.bt, obt: player.obt,
       pitchDie: player.pitchDie, traits: player.traits, age: player.age,
-      isPitcher: player.isPitcher, isStarter: player.isStarter,
+      isPitcher: player.isPitcher, isStarter: player.isStarter, gender: player.gender,
       restDaysNeeded: player.restDaysNeeded, restDaysRemaining: player.restDaysRemaining,
       injuryGamesRemaining: player.injuryGamesRemaining,
       injuryBtReduction: player.injuryBtReduction, injuryPdReduction: player.injuryPdReduction,

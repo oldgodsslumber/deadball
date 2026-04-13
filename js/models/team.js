@@ -25,6 +25,9 @@ DB.Team = {
       // Ballpark
       ballpark: data.ballpark || { name: 'Stadium', type: 'Retro', capacity: 40000, quirks: [], turf: 'Good', roof: 'None', condition: 'Sparkling' },
 
+      // Team composition
+      teamGender: data.teamGender || 'mixed', // 'men', 'women', 'mixed'
+
       // Franchise
       fanbase: data.fanbase || { level: 'Fair Weather', attendance: 50 },
       franchise: data.franchise || { yearsInLeague: 1, lastChampionship: null, priority: 'Balanced', makeup: 'Balanced' },
@@ -66,17 +69,27 @@ DB.Team = {
   },
 
   // Generate a full random team
+  // options.teamGender: 'men', 'women', or 'mixed' (default)
   generateRandom(options) {
     options = options || {};
     const era = options.era || 'modern';
     const eraConfig = DB.Eras[era];
     const teamName = options.name || DB.Team.generateTeamName();
+    const teamGender = options.teamGender || 'mixed';
+
+    // Helper: pick gender for a player based on team composition
+    function pickGender() {
+      if (teamGender === 'men') return 'M';
+      if (teamGender === 'women') return 'F';
+      return Math.random() < 0.5 ? 'M' : 'F';
+    }
 
     const team = DB.Team.create({
       name: teamName.name,
       location: teamName.location,
       mascot: teamName.mascot,
-      era: era
+      era: era,
+      teamGender: teamGender
     });
 
     // Generate lineup (position players)
@@ -86,7 +99,7 @@ DB.Team = {
         era: era,
         position: positions[i],
         tier: 'prospect',
-        name: undefined
+        gender: pickGender()
       });
       player.isPitcher = false;
       team.lineup.push(player);
@@ -97,7 +110,8 @@ DB.Team = {
       const player = DB.Player.generateRandom({
         era: era,
         position: positions[Math.floor(Math.random() * positions.length)],
-        tier: Math.random() < 0.5 ? 'prospect' : 'farmhand'
+        tier: Math.random() < 0.5 ? 'prospect' : 'farmhand',
+        gender: pickGender()
       });
       player.isPitcher = false;
       team.bench.push(player);
@@ -108,7 +122,8 @@ DB.Team = {
       const player = DB.Player.generateRandom({
         era: era,
         position: 'SP',
-        tier: i < 2 ? 'prospect' : 'farmhand'
+        tier: i < 2 ? 'prospect' : 'farmhand',
+        gender: pickGender()
       });
       player.isPitcher = true;
       player.isStarter = true;
@@ -120,7 +135,8 @@ DB.Team = {
       const player = DB.Player.generateRandom({
         era: era,
         position: 'RP',
-        tier: i === 0 ? 'prospect' : 'farmhand'
+        tier: i === 0 ? 'prospect' : 'farmhand',
+        gender: pickGender()
       });
       player.isPitcher = true;
       player.isStarter = false;
@@ -139,8 +155,8 @@ DB.Team = {
   },
 
   // Rapid team generation - just provide name + era, get a full team
-  generateRapid(name, era) {
-    const team = DB.Team.generateRandom({ era: era });
+  generateRapid(name, era, teamGender) {
+    const team = DB.Team.generateRandom({ era: era, teamGender: teamGender || 'mixed' });
     if (name) {
       const parts = name.split(' ');
       if (parts.length >= 2) {
@@ -188,7 +204,7 @@ DB.Team = {
   // Serialize
   serialize(team) {
     return {
-      id: team.id, name: team.name, location: team.location, mascot: team.mascot, era: team.era,
+      id: team.id, name: team.name, location: team.location, mascot: team.mascot, era: team.era, teamGender: team.teamGender,
       lineup: team.lineup.map(DB.Player.serialize),
       bench: team.bench.map(DB.Player.serialize),
       rotation: team.rotation.map(DB.Player.serialize),

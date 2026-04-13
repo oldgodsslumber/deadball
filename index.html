@@ -134,6 +134,14 @@
         <label>Team Name (e.g. "Brooklyn Robins")</label>
         <input type="text" id="rapid-team-name" placeholder="City Mascot">
       </div>
+      <div class="form-group">
+        <label>Team Composition</label>
+        <select id="rapid-team-gender">
+          <option value="mixed">Mixed (Men & Women)</option>
+          <option value="men">All Men</option>
+          <option value="women">All Women</option>
+        </select>
+      </div>
       <div class="btn-group">
         <button class="btn btn-primary" onclick="DB.TeamBuilderUI.rapidGenerate()">Generate Team</button>
         <button class="btn btn-secondary" onclick="DB.TeamBuilderUI.rapidGenerate(); DB.TeamBuilderUI.rapidGenerate();">Generate Two Teams</button>
@@ -154,11 +162,20 @@
     <button class="back-btn" onclick="DB.Screens.back()">&larr; Back</button>
     <h2>Create Player</h2>
     <div class="card">
+      <p class="subtitle">Quick random generation, or open the in-depth builder for full control.</p>
       <div class="form-group">
-        <label>Player Name</label>
+        <label>Player Name (blank for random)</label>
         <input type="text" id="player-name" placeholder="Enter name or leave blank for random">
       </div>
       <div class="grid-2col" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div class="form-group">
+          <label>Gender</label>
+          <select id="player-gender">
+            <option value="random">Random</option>
+            <option value="M">Male</option>
+            <option value="F">Female</option>
+          </select>
+        </div>
         <div class="form-group">
           <label>Position</label>
           <select id="player-position">
@@ -201,9 +218,20 @@
           </select>
         </div>
       </div>
-      <button class="btn btn-primary btn-block" onclick="DB.PlayerCardUI.generateRandom()">Generate Player</button>
+      <div class="btn-group" style="margin-top:12px;">
+        <button class="btn btn-primary" onclick="DB.PlayerCardUI.generateRandom()">Quick Generate</button>
+        <button class="btn btn-warning" onclick="DB.PlayerCardUI.openBuilder()">In-Depth Builder</button>
+      </div>
     </div>
     <div id="player-creator-result"></div>
+  </div>
+
+  <!-- ===== IN-DEPTH PLAYER BUILDER ===== -->
+  <div id="screen-player-builder" class="screen">
+    <button class="back-btn" onclick="DB.Screens.back()">&larr; Back</button>
+    <h2>In-Depth Player Builder</h2>
+    <p class="subtitle">Roll or set each stat individually. Click Roll Everything for a full random player.</p>
+    <div id="player-builder-content"></div>
   </div>
 
   <!-- ===== FRANCHISE BUILDER ===== -->
@@ -218,6 +246,14 @@
           <option value="modern">Modern Era</option>
           <option value="ancient">Ancient Era</option>
           <option value="juiced">Juiced Ball Era</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Team Composition</label>
+        <select id="franchise-team-gender">
+          <option value="mixed">Mixed (Men & Women)</option>
+          <option value="men">All Men</option>
+          <option value="women">All Women</option>
         </select>
       </div>
       <button class="btn btn-primary btn-block" onclick="DB.FranchiseUI.generate()">Generate Franchise</button>
@@ -394,6 +430,7 @@
   <script src="js/data/tables.js"></script>
   <script src="js/data/era-config.js"></script>
   <script src="js/data/franchise-tables.js"></script>
+  <script src="js/data/names.js"></script>
   <script src="js/models/player.js"></script>
   <script src="js/models/team.js"></script>
   <script src="js/models/game-state.js"></script>

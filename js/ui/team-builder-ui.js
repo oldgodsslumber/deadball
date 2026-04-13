@@ -16,8 +16,10 @@ DB.TeamBuilderUI = {
     var nameInput = document.getElementById('rapid-team-name');
     var name = nameInput ? nameInput.value.trim() : '';
     var era = DB.App.currentEra;
+    var genderSel = document.getElementById('rapid-team-gender');
+    var teamGender = genderSel ? genderSel.value : 'mixed';
 
-    var team = DB.Team.generateRapid(name || null, era);
+    var team = DB.Team.generateRapid(name || null, era, teamGender);
     DB.App.teams.push(team);
 
     // Show result
@@ -47,6 +49,12 @@ DB.TeamBuilderUI = {
     html += '<div class="card">';
     html += '<div class="form-group"><label>Team Name</label>';
     html += '<input type="text" id="detail-team-name" placeholder="e.g. Brooklyn Robins"></div>';
+    html += '<div class="form-group"><label>Team Composition</label>';
+    html += '<select id="detail-team-gender">';
+    html += '<option value="mixed">Mixed (Men & Women)</option>';
+    html += '<option value="men">All Men</option>';
+    html += '<option value="women">All Women</option>';
+    html += '</select></div>';
     html += '<p class="subtitle">Build a ' + eraConfig.rosterSize + '-player roster for the ' + DB.Eras[era].name + '.</p>';
     html += '</div>';
 
@@ -112,11 +120,15 @@ DB.TeamBuilderUI = {
     var pos = slotEl.getAttribute('data-pos');
     var isPitcher = slotEl.getAttribute('data-pitcher') === 'true';
     var era = DB.App.currentEra;
+    var genderSel = document.getElementById('detail-team-gender');
+    var teamGender = genderSel ? genderSel.value : 'mixed';
+    var gender = teamGender === 'men' ? 'M' : teamGender === 'women' ? 'F' : (Math.random() < 0.5 ? 'M' : 'F');
 
     var player = DB.Player.generateRandom({
       era: era,
       position: pos,
-      tier: 'prospect'
+      tier: 'prospect',
+      gender: gender
     });
 
     document.getElementById('name-' + slotId).value = player.name;

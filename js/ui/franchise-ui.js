@@ -102,7 +102,9 @@ DB.FranchiseUI = {
     result.cityName = cityName;
 
     // Generate the actual team
-    var team = DB.Team.generateRandom({ era: era, name: result.teamName });
+    var genderSel = document.getElementById('franchise-team-gender');
+    var teamGender = genderSel ? genderSel.value : 'mixed';
+    var team = DB.Team.generateRandom({ era: era, name: result.teamName, teamGender: teamGender });
     team.location = cityName;
     team.mascot = mascotName;
     team.manager = { name: result.managerName, daring: result.managerDaring, personality: result.managerPersonality };
