@@ -48,7 +48,7 @@ DB.DiamondView = {
     el.classList.add('show');
   },
 
-  // Move ball smoothly to a position
+  // Move ball smoothly to a position (uses CSS transition)
   moveBall(cx, cy) {
     var ball = document.getElementById('ball');
     if (!ball) return;
@@ -57,9 +57,28 @@ DB.DiamondView = {
     ball.classList.add('active');
   },
 
+  // Instantly reposition ball without transition (for resetting between plays)
+  placeBall(cx, cy) {
+    var ball = document.getElementById('ball');
+    if (!ball) return;
+    ball.classList.add('no-transition');
+    ball.setAttribute('cx', cx);
+    ball.setAttribute('cy', cy);
+    // Force reflow so the no-transition class takes effect before we remove it
+    void ball.getBoundingClientRect();
+    ball.classList.remove('no-transition');
+  },
+
   hideBall() {
     var ball = document.getElementById('ball');
-    if (ball) ball.classList.remove('active');
+    if (!ball) return;
+    ball.classList.remove('active');
+    // Reset position instantly so next play starts clean
+    ball.classList.add('no-transition');
+    ball.setAttribute('cx', 200);
+    ball.setAttribute('cy', 165);
+    void ball.getBoundingClientRect();
+    ball.classList.remove('no-transition');
   },
 
   // Field positions for ball targets
@@ -100,10 +119,13 @@ DB.DiamondView = {
     var halfSpeed = Math.round(speed * 0.5);
 
     // === PHASE 1: PITCH — ball from mound toward home plate ===
-    DB.DiamondView.moveBall(200, 165); // start at pitcher
+    DB.DiamondView.placeBall(200, 165); // instantly place at pitcher (no transition)
+    // Make visible, then after a tick animate toward the plate
+    var ball = document.getElementById('ball');
+    if (ball) ball.classList.add('active');
     setTimeout(function() {
-      DB.DiamondView.moveBall(200, 250); // arrive at plate
-    }, 50);
+      DB.DiamondView.moveBall(200, 250); // pitch to plate (smooth transition)
+    }, 60);
     delay += halfSpeed;
 
     // === PHASE 2: CONTACT / RESULT ===

@@ -113,6 +113,9 @@
 .ball.active {
   opacity: 1;
 }
+.ball.no-transition {
+  transition: none !important;
+}
 
 /* Hit result flash */
 .hit-flash {
