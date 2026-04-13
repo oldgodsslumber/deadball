@@ -167,6 +167,11 @@ DB.GameUI = {
     }
 
     if (!runner) {
+      // No valid steal target -- fall back to swing if AI, otherwise just log
+      if (gs.mode === 'solo' && DB.AIManager.isAIBatting(gs)) {
+        DB.GameUI.doSwing();
+        return;
+      }
       DB.GameUI.addLog('No runner available to steal.', '');
       return;
     }
@@ -194,6 +199,8 @@ DB.GameUI = {
 
     DB.DiamondView.updateBases(gs.bases);
     DB.GameUI.updateDisplay();
+    // Continue AI turn if applicable
+    DB.GameUI.checkAutoPlay();
   },
 
   // Bunt action
@@ -202,6 +209,11 @@ DB.GameUI = {
     var gs = DB.GameUI.gameState;
 
     if (DB.Baserunning.runnersOn(gs.bases) === 0) {
+      // No runners -- fall back to swing if AI
+      if (gs.mode === 'solo' && DB.AIManager.isAIBatting(gs)) {
+        DB.GameUI.doSwing();
+        return;
+      }
       DB.GameUI.addLog('No runners on base to bunt.', '');
       return;
     }
@@ -241,6 +253,8 @@ DB.GameUI = {
 
     DB.DiamondView.updateBases(gs.bases);
     DB.GameUI.updateDisplay();
+    // Continue AI turn if applicable
+    DB.GameUI.checkAutoPlay();
   },
 
   // Hit and Run
@@ -249,6 +263,11 @@ DB.GameUI = {
     var gs = DB.GameUI.gameState;
 
     if (!gs.bases.first) {
+      // No runner on first -- fall back to swing if AI
+      if (gs.mode === 'solo' && DB.AIManager.isAIBatting(gs)) {
+        DB.GameUI.doSwing();
+        return;
+      }
       DB.GameUI.addLog('Need a runner on first for hit and run.', '');
       return;
     }
@@ -294,6 +313,8 @@ DB.GameUI = {
 
     DB.DiamondView.updateBases(gs.bases);
     DB.GameUI.updateDisplay();
+    // Continue AI turn if applicable
+    DB.GameUI.checkAutoPlay();
   },
 
   // Show substitution modal
