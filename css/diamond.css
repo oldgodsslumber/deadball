@@ -1,0 +1,152 @@
+/* Deadball Digital - Baseball Diamond Styles */
+
+.diamond-container {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.diamond-svg {
+  width: 100%;
+  height: auto;
+}
+
+/* Field */
+.field-grass { fill: #2d5a27; }
+.field-dirt { fill: #8b6914; }
+.field-infield { fill: #b8860b; opacity: 0.3; }
+.field-outline { stroke: #fff; stroke-width: 1.5; fill: none; opacity: 0.4; }
+.foul-line { stroke: #fff; stroke-width: 1; opacity: 0.5; }
+
+/* Bases */
+.base {
+  fill: #444;
+  stroke: #666;
+  stroke-width: 1;
+  transition: all 0.3s ease;
+}
+.base.occupied {
+  fill: var(--accent2);
+  stroke: var(--accent2);
+  filter: drop-shadow(0 0 6px rgba(245,166,35,0.6));
+}
+.base.home-plate {
+  fill: #fff;
+  stroke: #999;
+}
+
+/* Runners */
+.runner {
+  fill: var(--accent);
+  stroke: #fff;
+  stroke-width: 1.5;
+  r: 8;
+  opacity: 0;
+  transition: all 0.5s ease;
+}
+.runner.active {
+  opacity: 1;
+}
+.runner.scoring {
+  animation: runnerScore 0.8s ease-out;
+}
+@keyframes runnerScore {
+  0% { opacity: 1; }
+  50% { opacity: 1; r: 12; fill: var(--green); }
+  100% { opacity: 0; r: 8; }
+}
+
+/* Fielder positions */
+.fielder {
+  fill: var(--blue);
+  stroke: #fff;
+  stroke-width: 1;
+  r: 5;
+  opacity: 0.6;
+}
+.fielder-label {
+  fill: #fff;
+  font-size: 8px;
+  text-anchor: middle;
+  dominant-baseline: central;
+  opacity: 0.5;
+}
+
+/* Batter */
+.batter-indicator {
+  fill: var(--accent);
+  stroke: #fff;
+  stroke-width: 2;
+  r: 10;
+  animation: batterPulse 1.5s ease-in-out infinite;
+}
+@keyframes batterPulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; filter: drop-shadow(0 0 8px rgba(233,69,96,0.6)); }
+}
+
+/* Ball flight animation */
+.ball-path {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2;
+  stroke-dasharray: 200;
+  stroke-dashoffset: 200;
+  opacity: 0;
+}
+.ball-path.animate {
+  opacity: 1;
+  animation: ballFlight 0.6s ease-out forwards;
+}
+@keyframes ballFlight {
+  to { stroke-dashoffset: 0; }
+}
+
+.ball {
+  fill: #fff;
+  r: 4;
+  opacity: 0;
+  transition: all 0.4s ease;
+}
+.ball.active {
+  opacity: 1;
+}
+
+/* Hit result flash */
+.hit-flash {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.5rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 10;
+}
+.hit-flash.show {
+  animation: hitFlash 1.2s ease-out forwards;
+}
+@keyframes hitFlash {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  20% { opacity: 1; transform: translate(-50%, -50%) scale(1.3); }
+  80% { opacity: 1; transform: translate(-50%, -60%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -70%) scale(0.8); }
+}
+.hit-flash.single { color: var(--text); }
+.hit-flash.double { color: var(--accent2); }
+.hit-flash.triple { color: var(--blue); }
+.hit-flash.homerun { color: var(--green); text-shadow: 0 0 20px rgba(83,215,105,0.5); }
+.hit-flash.strikeout { color: var(--red); }
+.hit-flash.walk { color: var(--text-dim); }
+.hit-flash.error { color: var(--accent); }
+
+/* Diamond info overlay */
+.diamond-info {
+  text-align: center;
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}

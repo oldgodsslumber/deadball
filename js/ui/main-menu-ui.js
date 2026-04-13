@@ -1,0 +1,185 @@
+// Deadball Digital - Main Menu UI
+var DB = DB || {};
+
+DB.MainMenuUI = {
+  init() {
+    // Screen change handler: refresh dynamic content when screens are shown
+    DB.Events.on('screen:change', function(screenId) {
+      switch (screenId) {
+        case 'save-select':
+          DB.Save.refreshSlotDisplay();
+          break;
+        case 'load-game':
+          DB.MainMenuUI.refreshLoadScreen();
+          break;
+        case 'team-setup':
+          DB.TeamBuilderUI.refreshTeamSetup();
+          break;
+        case 'team-manager':
+          DB.MainMenuUI.refreshTeamManager();
+          break;
+        case 'quick-sim':
+          DB.MainMenuUI.renderQuickSim();
+          break;
+      }
+    });
+  },
+
+  refreshLoadScreen() {
+    var container = document.getElementById('load-slots-list');
+    if (!container) return;
+
+    var slots = DB.Save.listSlots();
+    var html = '';
+    for (var i = 0; i < slots.length; i++) {
+      var info = slots[i];
+      var slotNum = i + 1;
+      if (info) {
+        var date = new Date(info.timestamp).toLocaleDateString();
+        var eraName = DB.Eras[info.era] ? DB.Eras[info.era].name : info.era;
+        html += '<div class="save-slot occupied" data-slot="' + slotNum + '" onclick="DB.Events.emit(\'slot:select\',' + slotNum + ')">';
+        html += '<div class="slot-num">Slot ' + slotNum + '</div>';
+        html += '<div class="slot-info">' + eraName + '<br>' + info.teamCount + ' teams<br>' + date + '</div>';
+        html += '<button class="btn btn-small" style="margin-top:8px;background:var(--red);" onclick="event.stopPropagation(); DB.Save.delete(' + slotNum + '); DB.MainMenuUI.refreshLoadScreen();">Delete</button>';
+        html += '</div>';
+      } else {
+        html += '<div class="save-slot" style="opacity:0.5;">';
+        html += '<div class="slot-num">Slot ' + slotNum + '</div>';
+        html += '<div class="slot-info">Empty</div>';
+        html += '</div>';
+      }
+    }
+    container.innerHTML = html;
+  },
+
+  refreshTeamManager() {
+    var container = document.getElementById('team-manager-content');
+    if (!container) return;
+
+    if (DB.App.teams.length === 0) {
+      container.innerHTML = '<p class="subtitle">No teams loaded. Create or load teams first.</p>';
+      return;
+    }
+
+    var html = '';
+    DB.App.teams.forEach(function(team, idx) {
+      html += '<div class="card">';
+      html += '<div class="card-header"><h3>' + team.name + '</h3>';
+      html += '<span class="era-badge">' + (DB.Eras[team.era] ? DB.Eras[team.era].name : team.era) + '</span></div>';
+      html += '<p>Team Score: <strong>' + team.teamScore + '</strong> | ' +
+        DB.Team.getRosterCount(team) + ' players</p>';
+      html += '<p>Manager: ' + team.manager.name + ' (Daring: ' + team.manager.daring + ', ' + team.manager.personality + ')</p>';
+
+      if (team.ballpark) {
+        html += '<p>Ballpark: ' + team.ballpark.name + ' (' + team.ballpark.type + ', ' +
+          (team.ballpark.capacity || 0).toLocaleString() + ' seats)</p>';
+      }
+      if (team.fanbase) {
+        html += '<p>Fanbase: ' + team.fanbase.level + ' (' + team.fanbase.attendance + '% attendance)</p>';
+      }
+
+      html += '<details><summary style="cursor:pointer;color:var(--accent2);">View Roster</summary>';
+      html += DB.RosterUI.renderRoster(team);
+      html += '</details>';
+
+      html += '<div class="btn-group" style="margin-top:12px;">';
+      html += '<button class="btn btn-small btn-secondary" onclick="DB.App.teams.splice(' + idx + ',1); DB.MainMenuUI.refreshTeamManager();">Remove</button>';
+      html += '</div></div>';
+    });
+
+    container.innerHTML = html;
+  },
+
+  renderQuickSim() {
+    var container = document.getElementById('quick-sim-content');
+    if (!container) return;
+
+    if (DB.App.teams.length < 2) {
+      container.innerHTML = '<p class="subtitle">You need at least 2 teams. Create some first!</p>' +
+        '<button class="btn btn-primary" onclick="DB.Screens.show(\'team-setup\')">Create Teams</button>' +
+        '<hr style="border-color:var(--border);margin:20px 0;">' +
+        '<h3>Quick Generate & Sim</h3>' +
+        '<p class="subtitle">Generate two random teams and simulate a game.</p>' +
+        '<button class="btn btn-warning" onclick="DB.MainMenuUI.quickRandomSim()">Random Sim!</button>' +
+        '<div id="quick-sim-result"></div>';
+      return;
+    }
+
+    var html = '<div class="grid-2col" style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">';
+    html += '<div class="form-group"><label>Team 1</label><select id="sim-team1">';
+    DB.App.teams.forEach(function(t, i) {
+      html += '<option value="' + i + '">' + t.name + ' (TS:' + t.teamScore + ')</option>';
+    });
+    html += '</select></div>';
+    html += '<div class="form-group"><label>Team 2</label><select id="sim-team2">';
+    DB.App.teams.forEach(function(t, i) {
+      html += '<option value="' + i + '"' + (i === 1 ? ' selected' : '') + '>' + t.name + ' (TS:' + t.teamScore + ')</option>';
+    });
+    html += '</select></div></div>';
+
+    html += '<div class="form-group"><label>Simulation Type</label><select id="sim-type">';
+    html += '<option value="quick">Quick Sim (Team Score)</option>';
+    html += '<option value="full">Full At-Bat Simulation</option>';
+    html += '</select></div>';
+
+    html += '<button class="btn btn-primary btn-block" onclick="DB.MainMenuUI.runSim()">Simulate!</button>';
+    html += '<div id="quick-sim-result" style="margin-top:16px;"></div>';
+    container.innerHTML = html;
+  },
+
+  runSim() {
+    var idx1 = parseInt(document.getElementById('sim-team1').value);
+    var idx2 = parseInt(document.getElementById('sim-team2').value);
+    var simType = document.getElementById('sim-type').value;
+
+    if (idx1 === idx2) { alert('Pick different teams!'); return; }
+
+    var team1 = DB.App.teams[idx1];
+    var team2 = DB.App.teams[idx2];
+    var result;
+
+    if (simType === 'quick') {
+      result = DB.Sim.quickSim(team1, team2);
+      var html = '<div class="card fade-in">';
+      html += '<h3>' + result.desc + '</h3>';
+      html += '<p>Team Scores: ' + result.team1Name + ' ' + result.ts1 + ' vs ' + result.team2Name + ' ' + result.ts2 + '</p>';
+      html += '<p>Win probability: ' + result.winChance + '% | Roll: ' + result.winRoll + '</p>';
+      html += '</div>';
+      document.getElementById('quick-sim-result').innerHTML = html;
+    } else {
+      var gs = DB.Sim.fullSim(team1, team2, DB.App.currentEra);
+      var html2 = '<div class="card fade-in">';
+      html2 += '<h3>FINAL: ' + gs.awayTeam.name + ' ' + gs.score.away + ', ' + gs.homeTeam.name + ' ' + gs.score.home + '</h3>';
+      html2 += DB.GameUI.renderBoxScore(gs.awayTeam, 'Away');
+      html2 += DB.GameUI.renderBoxScore(gs.homeTeam, 'Home');
+      html2 += '<details><summary style="cursor:pointer;color:var(--accent2);">Play-by-Play</summary>';
+      html2 += '<div class="play-log" style="max-height:400px;">';
+      gs.log.forEach(function(msg) {
+        html2 += '<div class="entry">' + msg + '</div>';
+      });
+      html2 += '</div></details></div>';
+      document.getElementById('quick-sim-result').innerHTML = html2;
+    }
+  },
+
+  quickRandomSim() {
+    var era = DB.App.currentEra || 'modern';
+    var team1 = DB.Team.generateRandom({ era: era });
+    var team2 = DB.Team.generateRandom({ era: era });
+
+    var result = DB.Sim.quickSim(team1, team2);
+    var html = '<div class="card fade-in">';
+    html += '<h3>' + result.desc + '</h3>';
+    html += '<p>' + team1.name + ' (TS:' + team1.teamScore + ') vs ' + team2.name + ' (TS:' + team2.teamScore + ')</p>';
+    html += '<div class="btn-group" style="margin-top:8px;">';
+    html += '<button class="btn btn-small btn-success" onclick="DB.MainMenuUI.quickRandomSim()">Sim Again</button>';
+    html += '</div></div>';
+
+    var container = document.getElementById('quick-sim-result');
+    if (container) container.innerHTML = html;
+  }
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+  DB.MainMenuUI.init();
+});
