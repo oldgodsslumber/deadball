@@ -22,6 +22,7 @@ DB.Screens = {
     'game-history': 'team-setup',
     'quick-sim': 'main-menu',
     'game-setup': 'team-setup',
+    'season': 'team-setup',
     'game': 'main-menu',
     'post-game': 'main-menu'
   },

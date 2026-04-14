@@ -97,7 +97,8 @@ DB.MainMenuUI = {
       html += '</details>';
 
       html += '<div class="btn-group" style="margin-top:12px;">';
-      html += '<button class="btn btn-small btn-secondary" onclick="DB.App.teams.splice(' + idx + ',1); DB.MainMenuUI.refreshTeamManager();">Remove</button>';
+      html += '<button class="btn btn-small btn-warning" onclick="DB.RosterUI.exportTeam(DB.App.teams[' + idx + '])">Export/Print</button>';
+      html += '<button class="btn btn-small btn-secondary" onclick="DB.App.teams.splice(' + idx + ',1); DB.Save.autoSave(); DB.MainMenuUI.refreshTeamManager();">Remove</button>';
       html += '</div></div>';
     });
 

@@ -160,8 +160,9 @@
       </div>
     </div>
     <div id="team-setup-teams" style="margin-top:20px;"></div>
-    <div style="text-align:center; margin-top:20px;">
-      <button class="btn btn-primary" id="btn-start-game" style="display:none;" onclick="DB.GameUI.setupGame()">Start Game</button>
+    <div style="text-align:center; margin-top:20px;" class="btn-group" style="justify-content:center;">
+      <button class="btn btn-primary" id="btn-start-game" style="display:none;" onclick="DB.GameUI.setupGame()">Exhibition Game</button>
+      <button class="btn btn-success" id="btn-start-season" style="display:none;" onclick="DB.SeasonUI.showBeginSeason()">Begin Season</button>
     </div>
   </div>
 
@@ -300,6 +301,11 @@
       <button class="btn btn-primary btn-block" onclick="DB.FranchiseUI.generate()">Generate Franchise</button>
     </div>
     <div id="franchise-result"></div>
+  </div>
+
+  <!-- ===== SEASON ===== -->
+  <div id="screen-season" class="screen">
+    <div id="season-content"></div>
   </div>
 
   <!-- ===== TEAM MANAGER ===== -->
@@ -458,8 +464,8 @@
   <div id="screen-post-game" class="screen">
     <h2>Final Score</h2>
     <div id="post-game-content"></div>
-    <div style="text-align:center; margin-top:20px;">
-      <button class="btn btn-primary" onclick="DB.Screens.show('main-menu')">Main Menu</button>
+    <div style="text-align:center; margin-top:20px;" class="btn-group" style="justify-content:center;">
+      <button class="btn btn-primary" id="btn-post-game-next" onclick="DB.Screens.show('main-menu')">Main Menu</button>
     </div>
   </div>
 
@@ -497,6 +503,7 @@
   <script src="js/ui/player-card-ui.js"></script>
   <script src="js/ui/import-ui.js"></script>
   <script src="js/ui/save-ui.js"></script>
+  <script src="js/ui/season-ui.js"></script>
   <script src="js/ui/main-menu-ui.js"></script>
 
 </body>

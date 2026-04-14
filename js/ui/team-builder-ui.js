@@ -265,8 +265,19 @@ DB.TeamBuilderUI = {
     });
     container.innerHTML = html;
 
-    if (DB.App.teams.length >= 2) {
-      document.getElementById('btn-start-game').style.display = '';
+    var gameBtn = document.getElementById('btn-start-game');
+    var seasonBtn = document.getElementById('btn-start-season');
+    if (gameBtn) gameBtn.style.display = DB.App.teams.length >= 2 ? '' : 'none';
+    if (seasonBtn) {
+      if (DB.App.season && DB.App.season.phase !== 'offseason') {
+        seasonBtn.textContent = 'Continue Season';
+        seasonBtn.style.display = '';
+        seasonBtn.onclick = function() { DB.SeasonUI.showWeek(); };
+      } else {
+        seasonBtn.textContent = 'Begin Season';
+        seasonBtn.style.display = DB.App.teams.length >= 4 ? '' : 'none';
+        seasonBtn.onclick = function() { DB.SeasonUI.showBeginSeason(); };
+      }
     }
   }
 };

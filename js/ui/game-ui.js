@@ -522,6 +522,11 @@ DB.GameUI = {
     DB.App.recordGame(gs);
     DB.App.currentGame = null;
 
+    // If this was a season game, record the result
+    if (DB.SeasonUI && DB.SeasonUI._pendingGame) {
+      DB.SeasonUI.onSeasonGameEnd(gs);
+    }
+
     setTimeout(function() {
       var html = '<div class="scoreboard" style="margin-bottom:20px;">';
       html += '<h2>FINAL</h2>';
@@ -544,6 +549,16 @@ DB.GameUI = {
 
       DB.Screens.render('post-game-content', html);
       DB.Screens.show('post-game');
+
+      // Update post-game button based on context
+      var nextBtn = document.getElementById('btn-post-game-next');
+      if (nextBtn && DB.App.season && DB.App.season.phase !== 'offseason') {
+        nextBtn.textContent = 'Back to Season';
+        nextBtn.onclick = function() { DB.SeasonUI.showWeek(); };
+      } else {
+        nextBtn.textContent = 'Main Menu';
+        nextBtn.onclick = function() { DB.Screens.show('main-menu'); };
+      }
     }, 1500);
   },
 
