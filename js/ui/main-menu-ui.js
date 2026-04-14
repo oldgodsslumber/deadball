@@ -6,11 +6,11 @@ DB.MainMenuUI = {
     // Screen change handler: refresh dynamic content when screens are shown
     DB.Events.on('screen:change', function(screenId) {
       switch (screenId) {
-        case 'save-select':
-          DB.Save.refreshSlotDisplay();
+        case 'league-setup':
+          DB.SaveUI.renderLeagueSlots('league-slot-list');
           break;
         case 'load-game':
-          DB.MainMenuUI.refreshLoadScreen();
+          DB.SaveUI.renderLoadSlots();
           break;
         case 'team-setup':
           DB.TeamBuilderUI.refreshTeamSetup();
@@ -21,34 +21,42 @@ DB.MainMenuUI = {
         case 'quick-sim':
           DB.MainMenuUI.renderQuickSim();
           break;
+        case 'game-history':
+          DB.MainMenuUI.renderGameHistory();
+          break;
       }
     });
   },
 
-  refreshLoadScreen() {
-    var container = document.getElementById('load-slots-list');
+  renderGameHistory() {
+    var container = document.getElementById('game-history-content');
     if (!container) return;
 
-    var slots = DB.Save.listSlots();
-    var html = '';
-    for (var i = 0; i < slots.length; i++) {
-      var info = slots[i];
-      var slotNum = i + 1;
-      if (info) {
-        var date = new Date(info.timestamp).toLocaleDateString();
-        var eraName = DB.Eras[info.era] ? DB.Eras[info.era].name : info.era;
-        html += '<div class="save-slot occupied" data-slot="' + slotNum + '" onclick="DB.Events.emit(\'slot:select\',' + slotNum + ')">';
-        html += '<div class="slot-num">Slot ' + slotNum + '</div>';
-        html += '<div class="slot-info">' + eraName + '<br>' + info.teamCount + ' teams<br>' + date + '</div>';
-        html += '<button class="btn btn-small" style="margin-top:8px;background:var(--red);" onclick="event.stopPropagation(); DB.Save.delete(' + slotNum + '); DB.MainMenuUI.refreshLoadScreen();">Delete</button>';
-        html += '</div>';
-      } else {
-        html += '<div class="save-slot" style="opacity:0.5;">';
-        html += '<div class="slot-num">Slot ' + slotNum + '</div>';
-        html += '<div class="slot-info">Empty</div>';
-        html += '</div>';
-      }
+    var history = DB.App.gameHistory || [];
+    if (history.length === 0) {
+      container.innerHTML = '<p class="subtitle">No games played yet.</p>';
+      return;
     }
+
+    var html = '<p class="subtitle">' + history.length + ' game(s) played</p>';
+    html += '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">';
+    html += '<table class="data-table"><tr><th>#</th><th>Date</th><th>Away</th><th>Score</th><th>Home</th><th>Score</th><th>Winner</th><th>Inn</th></tr>';
+    // Show most recent first
+    for (var i = history.length - 1; i >= 0; i--) {
+      var g = history[i];
+      var date = new Date(g.date).toLocaleDateString();
+      html += '<tr>';
+      html += '<td>' + (i + 1) + '</td>';
+      html += '<td>' + date + '</td>';
+      html += '<td>' + g.away.name + '</td>';
+      html += '<td>' + g.away.score + '</td>';
+      html += '<td>' + g.home.name + '</td>';
+      html += '<td>' + g.home.score + '</td>';
+      html += '<td><strong>' + g.winner + '</strong></td>';
+      html += '<td>' + g.innings + '</td>';
+      html += '</tr>';
+    }
+    html += '</table></div>';
     container.innerHTML = html;
   },
 

@@ -1,19 +1,34 @@
-// Deadball Digital - Save/Load System
+// Deadball Digital - League-Based Persistence System
 var DB = DB || {};
 
 DB.Save = {
   SLOT_COUNT: 5,
-  VERSION: 1,
-  KEY_PREFIX: 'deadball_save_',
+  VERSION: 2,
+  KEY_PREFIX: 'deadball_league_',
 
+  // ===== AUTO-SAVE =====
+  // Called after any team/player creation, game completion, or state change
+  autoSave() {
+    var slot = DB.App.currentSaveSlot;
+    if (!slot) return false;
+    return DB.Save.save(slot);
+  },
+
+  // Save current state to a league slot
   save(slotId) {
     var data = {
       version: DB.Save.VERSION,
       slot: slotId,
+      // League config
+      leagueName: DB.App.leagueName || 'My League',
       era: DB.App.currentEra,
+      teamGender: DB.App.leagueTeamGender || 'mixed',
+      // Data
       teams: DB.App.teams.map(DB.Team.serialize),
       currentGame: DB.App.currentGame ? DB.GameState.serialize(DB.App.currentGame) : null,
       playerPool: DB.App.playerPool.map(DB.Player.serialize),
+      gameHistory: DB.App.gameHistory || [],
+      season: DB.App.season || null,
       timestamp: Date.now()
     };
     try {
@@ -28,15 +43,23 @@ DB.Save = {
   load(slotId) {
     try {
       var raw = localStorage.getItem(DB.Save.KEY_PREFIX + slotId);
+      if (!raw) {
+        // Check old format
+        raw = localStorage.getItem('deadball_save_' + slotId);
+      }
       if (!raw) return null;
       var data = JSON.parse(raw);
       return {
         version: data.version,
         slot: data.slot,
+        leagueName: data.leagueName || 'League ' + slotId,
         era: data.era,
+        teamGender: data.teamGender || 'mixed',
         teams: (data.teams || []).map(DB.Team.deserialize),
         currentGame: data.currentGame ? DB.GameState.deserialize(data.currentGame) : null,
         playerPool: (data.playerPool || []).map(DB.Player.deserialize),
+        gameHistory: data.gameHistory || [],
+        season: data.season || null,
         timestamp: data.timestamp
       };
     } catch (e) {
@@ -47,18 +70,23 @@ DB.Save = {
 
   delete(slotId) {
     localStorage.removeItem(DB.Save.KEY_PREFIX + slotId);
+    localStorage.removeItem('deadball_save_' + slotId); // clean old format too
   },
 
   getSlotInfo(slotId) {
     try {
       var raw = localStorage.getItem(DB.Save.KEY_PREFIX + slotId);
+      if (!raw) raw = localStorage.getItem('deadball_save_' + slotId);
       if (!raw) return null;
       var data = JSON.parse(raw);
       return {
         slot: slotId,
+        leagueName: data.leagueName || 'League ' + slotId,
         era: data.era,
+        teamGender: data.teamGender || 'mixed',
         teamCount: (data.teams || []).length,
         hasGame: !!data.currentGame,
+        gameCount: (data.gameHistory || []).length,
         timestamp: data.timestamp
       };
     } catch (e) {
@@ -74,37 +102,16 @@ DB.Save = {
     return slots;
   },
 
-  refreshSlotDisplay() {
-    var container = document.getElementById('save-slots-list');
-    if (!container) return;
-    var slots = DB.Save.listSlots();
-    var html = '';
-    for (var i = 0; i < slots.length; i++) {
-      var info = slots[i];
-      var slotNum = i + 1;
-      if (info) {
-        var date = new Date(info.timestamp).toLocaleDateString();
-        var eraName = DB.Eras[info.era] ? DB.Eras[info.era].name : info.era;
-        html += '<div class="save-slot occupied" data-slot="' + slotNum + '">' +
-          '<div class="slot-num">Slot ' + slotNum + '</div>' +
-          '<div class="slot-info">' + eraName + '<br>' + info.teamCount + ' teams<br>' + date + '</div>' +
-          '</div>';
-      } else {
-        html += '<div class="save-slot" data-slot="' + slotNum + '">' +
-          '<div class="slot-num">Slot ' + slotNum + '</div>' +
-          '<div class="slot-info">Empty</div>' +
-          '</div>';
-      }
-    }
-    container.innerHTML = html;
-
-    // Bind click handlers
-    container.querySelectorAll('.save-slot').forEach(function(el) {
-      el.addEventListener('click', function() {
-        var slot = parseInt(this.getAttribute('data-slot'));
-        DB.Events.emit('slot:select', slot);
-      });
-    });
+  // Apply loaded data to app state
+  applyToApp(data) {
+    DB.App.currentEra = data.era;
+    DB.App.leagueName = data.leagueName;
+    DB.App.leagueTeamGender = data.teamGender;
+    DB.App.teams = data.teams;
+    DB.App.playerPool = data.playerPool;
+    DB.App.currentGame = data.currentGame;
+    DB.App.gameHistory = data.gameHistory;
+    DB.App.season = data.season;
   },
 
   // Export save as downloadable JSON
@@ -115,12 +122,11 @@ DB.Save = {
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = url;
-    a.download = 'deadball_save_' + slotId + '.json';
+    a.download = 'deadball_league_' + slotId + '.json';
     a.click();
     URL.revokeObjectURL(url);
   },
 
-  // Import save from JSON file
   importSlot(slotId, file) {
     var reader = new FileReader();
     reader.onload = function(e) {
@@ -128,7 +134,6 @@ DB.Save = {
         var data = JSON.parse(e.target.result);
         data.slot = slotId;
         localStorage.setItem(DB.Save.KEY_PREFIX + slotId, JSON.stringify(data));
-        DB.Save.refreshSlotDisplay();
       } catch (err) {
         console.error('Import failed:', err);
       }

@@ -35,7 +35,7 @@ DB.PlayerCardUI = {
 
   addToPool() {
     if (DB.PlayerCardUI._lastPlayer) {
-      DB.App.playerPool.push(DB.PlayerCardUI._lastPlayer);
+      DB.App.playerPool.push(DB.PlayerCardUI._lastPlayer); DB.Save.autoSave();
       alert(DB.PlayerCardUI._lastPlayer.name + ' added to player pool!');
     }
   },
@@ -495,7 +495,7 @@ DB.PlayerCardUI = {
       return;
     }
 
-    DB.App.playerPool.push(player);
+    DB.App.playerPool.push(player); DB.Save.autoSave();
     alert(player.name + ' saved to player pool!');
     DB.Screens.back();
   },

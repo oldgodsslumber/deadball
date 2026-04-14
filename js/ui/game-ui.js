@@ -518,6 +518,10 @@ DB.GameUI = {
   // Game over
   showGameOver() {
     var gs = DB.GameUI.gameState;
+    // Record game in history and auto-save
+    DB.App.recordGame(gs);
+    DB.App.currentGame = null;
+
     setTimeout(function() {
       var html = '<div class="scoreboard" style="margin-bottom:20px;">';
       html += '<h2>FINAL</h2>';

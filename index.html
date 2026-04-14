@@ -16,42 +16,73 @@
       <div class="tagline">Baseball With Dice</div>
     </div>
     <div class="menu-grid">
-      <div class="menu-item" data-screen="era-select" data-action="new-game">
+      <div class="menu-item" data-action="new-league">
         <div class="icon">&#9918;</div>
-        <h3>New Game</h3>
-        <p>Start a new season or exhibition</p>
+        <h3>New League</h3>
+        <p>Set up a new league with era and teams</p>
       </div>
-      <div class="menu-item" data-screen="load-game" data-action="continue">
+      <div class="menu-item" data-action="continue">
         <div class="icon">&#128190;</div>
         <h3>Continue</h3>
-        <p>Load a saved game</p>
+        <p>Load a saved league</p>
       </div>
-      <div class="menu-item" data-screen="quick-sim" data-action="quick-sim">
+      <div class="menu-item" data-action="exhibition">
         <div class="icon">&#9889;</div>
-        <h3>Quick Sim</h3>
-        <p>Simulate a full game instantly</p>
+        <h3>Exhibition</h3>
+        <p>Quick game without saving</p>
       </div>
-      <div class="menu-item" data-screen="team-manager" data-action="manage-teams">
-        <div class="icon">&#128101;</div>
-        <h3>Manage Teams</h3>
-        <p>View, edit, and create teams</p>
-      </div>
-      <div class="menu-item" data-screen="player-creator" data-action="create-player">
+      <div class="menu-item" data-action="create-player">
         <div class="icon">&#9917;</div>
         <h3>Create Player</h3>
         <p>Build an individual player</p>
       </div>
-      <div class="menu-item" data-screen="franchise-builder" data-action="franchise-builder">
-        <div class="icon">&#127967;</div>
-        <h3>Franchise Builder</h3>
-        <p>Generate a complete franchise</p>
-      </div>
     </div>
+  </div>
+
+  <!-- ===== LEAGUE SETUP (new league slot) ===== -->
+  <div id="screen-league-setup" class="screen">
+    <h2>New League Setup</h2>
+    <p class="subtitle">Configure your league before creating teams.</p>
+    <div class="card">
+      <div class="form-group">
+        <label>League Name</label>
+        <input type="text" id="league-name-input" placeholder="e.g. Backyard Baseball League">
+      </div>
+      <div class="grid-2col" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div class="form-group">
+          <label>Era</label>
+          <select id="league-era-select">
+            <option value="modern">Modern Era</option>
+            <option value="ancient">Ancient Era (Dead-ball)</option>
+            <option value="juiced">Juiced Ball Era (2017+)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Default Team Mix</label>
+          <select id="league-gender-select">
+            <option value="mixed">Mixed (Men & Women)</option>
+            <option value="men">All Men</option>
+            <option value="women">All Women</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Save Slot</label>
+        <div class="save-slots" id="league-slot-list"></div>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="DB.SaveUI.createLeague()" style="margin-top:16px;">Create League</button>
+    </div>
+  </div>
+
+  <!-- ===== GAME HISTORY ===== -->
+  <div id="screen-game-history" class="screen">
+    <h2>Game History</h2>
+    <div id="game-history-content"></div>
   </div>
 
   <!-- ===== ERA SELECT ===== -->
   <div id="screen-era-select" class="screen">
-    <button class="back-btn" onclick="DB.Screens.back()">&larr; Back</button>
+
     <h2>Choose Your Era</h2>
     <p class="subtitle">Each era plays differently with unique rules and player distributions.</p>
     <div class="era-options">
@@ -72,7 +103,7 @@
 
   <!-- ===== SAVE SLOT SELECT ===== -->
   <div id="screen-save-select" class="screen">
-    <button class="back-btn" onclick="DB.Screens.back()">&larr; Back</button>
+
     <h2>Select Save Slot</h2>
     <p class="subtitle">Choose a slot for your new game. <span class="era-badge"></span></p>
     <div class="save-slots" id="save-slots-list"></div>
@@ -80,7 +111,7 @@
 
   <!-- ===== LOAD GAME ===== -->
   <div id="screen-load-game" class="screen">
-    <button class="back-btn" onclick="DB.Screens.back()">&larr; Back</button>
+
     <h2>Load Game</h2>
     <p class="subtitle">Select a save slot to continue.</p>
     <div class="save-slots" id="load-slots-list"></div>
@@ -88,7 +119,7 @@
 
   <!-- ===== TEAM SETUP ===== -->
   <div id="screen-team-setup" class="screen">
-    <button class="back-btn" onclick="DB.Screens.back()">&larr; Back</button>
+
     <h2>Team Setup <span class="era-badge"></span></h2>
     <p class="subtitle">Create or load your teams.</p>
     <div class="menu-grid">
@@ -117,6 +148,16 @@
         <h3>MLB Season Game</h3>
         <p>Play with real 2025 MLB teams</p>
       </div>
+      <div class="menu-item" onclick="DB.Screens.show('team-manager')">
+        <div class="icon">&#128101;</div>
+        <h3>Manage Teams</h3>
+        <p>View and edit existing teams</p>
+      </div>
+      <div class="menu-item" onclick="DB.Screens.show('game-history')">
+        <div class="icon">&#128203;</div>
+        <h3>Game History</h3>
+        <p>View past game results</p>
+      </div>
     </div>
     <div id="team-setup-teams" style="margin-top:20px;"></div>
     <div style="text-align:center; margin-top:20px;">
@@ -126,7 +167,7 @@
 
   <!-- ===== RAPID TEAM CREATOR ===== -->
   <div id="screen-rapid-create" class="screen">
-    <button class="back-btn" onclick="DB.Screens.back()">&larr; Back</button>
+
     <h2>Rapid Team Creation</h2>
     <p class="subtitle">Enter a team name and we'll generate a full roster.</p>
     <div class="card">
@@ -152,14 +193,14 @@
 
   <!-- ===== DETAILED TEAM BUILDER ===== -->
   <div id="screen-detailed-builder" class="screen">
-    <button class="back-btn" onclick="DB.Screens.back()">&larr; Back</button>
+
     <h2>Detailed Team Builder</h2>
     <div id="detailed-builder-content"></div>
   </div>
 
   <!-- ===== PLAYER CREATOR ===== -->
   <div id="screen-player-creator" class="screen">
-    <button class="back-btn" onclick="DB.Screens.back()">&larr; Back</button>
+
     <h2>Create Player</h2>
     <div class="card">
       <p class="subtitle">Quick random generation, or open the in-depth builder for full control.</p>
@@ -228,7 +269,7 @@
 
   <!-- ===== IN-DEPTH PLAYER BUILDER ===== -->
   <div id="screen-player-builder" class="screen">
-    <button class="back-btn" onclick="DB.Screens.back()">&larr; Back</button>
+
     <h2>In-Depth Player Builder</h2>
     <p class="subtitle">Roll or set each stat individually. Click Roll Everything for a full random player.</p>
     <div id="player-builder-content"></div>
@@ -236,7 +277,7 @@
 
   <!-- ===== FRANCHISE BUILDER ===== -->
   <div id="screen-franchise-builder" class="screen">
-    <button class="back-btn" onclick="DB.Screens.back()">&larr; Back</button>
+
     <h2>Franchise Builder</h2>
     <p class="subtitle">Generate a complete fictional franchise with ballpark, owner, and manager.</p>
     <div class="card">
@@ -263,7 +304,7 @@
 
   <!-- ===== TEAM MANAGER ===== -->
   <div id="screen-team-manager" class="screen">
-    <button class="back-btn" onclick="DB.Screens.back()">&larr; Back</button>
+
     <h2>Manage Teams</h2>
     <div id="team-manager-content">
       <p class="subtitle">No teams loaded. Create or load a team from the main menu.</p>
@@ -272,7 +313,7 @@
 
   <!-- ===== MLB IMPORT ===== -->
   <div id="screen-mlb-import" class="screen">
-    <button class="back-btn" onclick="DB.Screens.back()">&larr; Back</button>
+
     <h2>Import MLB Team</h2>
     <p class="subtitle">Pull real player stats from MLB and convert to Deadball format.</p>
     <div id="mlb-import-content"></div>
@@ -280,7 +321,7 @@
 
   <!-- ===== MLB SEASON ===== -->
   <div id="screen-mlb-season" class="screen">
-    <button class="back-btn" onclick="DB.Screens.back()">&larr; Back</button>
+
     <h2>MLB Season Game</h2>
     <p class="subtitle">Play with real 2025 MLB teams.</p>
     <div id="mlb-season-content"></div>
@@ -288,7 +329,7 @@
 
   <!-- ===== QUICK SIM ===== -->
   <div id="screen-quick-sim" class="screen">
-    <button class="back-btn" onclick="DB.Screens.back()">&larr; Back</button>
+
     <h2>Quick Simulation</h2>
     <p class="subtitle">Simulate a full game using Team Scores.</p>
     <div id="quick-sim-content"></div>
@@ -296,7 +337,7 @@
 
   <!-- ===== GAME SETUP ===== -->
   <div id="screen-game-setup" class="screen">
-    <button class="back-btn" onclick="DB.Screens.back()">&larr; Back</button>
+
     <h2>Game Setup</h2>
     <div id="game-setup-content"></div>
   </div>

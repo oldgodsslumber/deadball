@@ -212,7 +212,7 @@ DB.ImportUI = {
 
     team.manager = { name: 'Manager', daring: 10, personality: 'Even-Keeled' };
     DB.Team.calculateTeamScore(team);
-    DB.App.teams.push(team);
+    DB.App.teams.push(team); DB.Save.autoSave();
 
     var impSeason = document.getElementById('mlb-import-season');
     var impYear = impSeason ? impSeason.value : new Date().getFullYear();

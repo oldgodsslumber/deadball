@@ -179,7 +179,7 @@ DB.FranchiseUI = {
 
   saveFranchise() {
     if (DB.FranchiseUI._lastTeam) {
-      DB.App.teams.push(DB.FranchiseUI._lastTeam);
+      DB.App.teams.push(DB.FranchiseUI._lastTeam); DB.Save.autoSave();
       alert(DB.FranchiseUI._lastTeam.name + ' added to your teams!');
     }
   },

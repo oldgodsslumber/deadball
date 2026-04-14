@@ -5,9 +5,13 @@ DB.App = {
   currentScreen: null,
   currentEra: 'modern',
   currentSaveSlot: null,
+  leagueName: '',
+  leagueTeamGender: 'mixed',
   teams: [],
   playerPool: [],
   currentGame: null,
+  gameHistory: [], // Array of completed game summaries
+  season: null,
 
   init() {
     // Bind global navigation
@@ -24,19 +28,17 @@ DB.App = {
       });
     });
 
-    // Show main menu
+    // Inject nav bars and show main menu
+    DB.Screens.initNavBars();
     DB.Screens.show('main-menu');
-
-    // Load save slot metadata for display
-    if (DB.Save) DB.Save.refreshSlotDisplay();
 
     console.log('Deadball Digital initialized');
   },
 
   handleAction(action, el) {
     switch (action) {
-      case 'new-game':
-        DB.Screens.show('era-select');
+      case 'new-league':
+        DB.Screens.show('league-setup');
         break;
       case 'continue':
         DB.Screens.show('load-game');
@@ -44,17 +46,18 @@ DB.App = {
       case 'quick-sim':
         DB.Screens.show('quick-sim');
         break;
+      case 'exhibition':
+        // Quick exhibition: no league, just make teams and play
+        DB.App.currentSaveSlot = null;
+        DB.App.teams = [];
+        DB.App.gameHistory = [];
+        DB.Screens.show('team-setup');
+        break;
       case 'create-player':
         DB.Screens.show('player-creator');
         break;
       case 'manage-teams':
         DB.Screens.show('team-manager');
-        break;
-      case 'franchise-builder':
-        DB.Screens.show('franchise-builder');
-        break;
-      case 'mlb-import':
-        DB.Screens.show('mlb-import');
         break;
       default:
         console.warn('Unknown action:', action);
@@ -66,6 +69,20 @@ DB.App = {
     document.querySelectorAll('.era-badge').forEach(function(el) {
       el.textContent = DB.Eras[era].name;
     });
+  },
+
+  // Record a completed game in history
+  recordGame(gs) {
+    var summary = {
+      date: new Date().toISOString(),
+      away: { name: gs.awayTeam.name, score: gs.score.away },
+      home: { name: gs.homeTeam.name, score: gs.score.home },
+      winner: gs.winner === 'home' ? gs.homeTeam.name : (gs.winner === 'away' ? gs.awayTeam.name : 'Tie'),
+      innings: gs.inning,
+      mode: gs.mode
+    };
+    DB.App.gameHistory.push(summary);
+    DB.Save.autoSave();
   }
 };
 

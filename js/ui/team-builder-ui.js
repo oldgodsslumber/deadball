@@ -20,7 +20,7 @@ DB.TeamBuilderUI = {
     var teamGender = genderSel ? genderSel.value : 'mixed';
 
     var team = DB.Team.generateRapid(name || null, era, teamGender);
-    DB.App.teams.push(team);
+    DB.App.teams.push(team); DB.Save.autoSave();
     var teamIdx = DB.App.teams.length - 1;
 
     // Show result
@@ -187,7 +187,7 @@ DB.TeamBuilderUI = {
 
     team.manager = { name: DB.Player.generateName(), daring: DB.Dice.d20(), personality: 'Even-Keeled' };
     DB.Team.calculateTeamScore(team);
-    DB.App.teams.push(team);
+    DB.App.teams.push(team); DB.Save.autoSave();
 
     alert(team.name + ' saved! Team Score: ' + team.teamScore);
     DB.Screens.show('team-setup');
