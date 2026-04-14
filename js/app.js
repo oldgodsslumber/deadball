@@ -15,7 +15,7 @@ DB.App = {
 
   init() {
     // Bind global navigation
-    document.querySelectorAll('[data-screen]').forEach(function(el) {
+    document.querySelectorAll('[data-screen],[data-action]').forEach(function(el) {
       el.addEventListener('click', function(e) {
         e.preventDefault();
         var screen = this.getAttribute('data-screen');
